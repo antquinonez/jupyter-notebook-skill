@@ -63,10 +63,10 @@ For any other tool following the [Agent Skills specification](https://agentskill
 <skills-dir>/jupyter-notebook/SKILL.md
 ```
 
-### Install from Git (Antigravity CLI)
+### Install from Git (Gemini CLI / Antigravity CLI)
 
 ```bash
-antigravity skills install https://github.com/antquinonez/jupyter-notebook-skill.git --path jupyter-notebook
+gemini skills install https://github.com/antquinonez/jupyter-notebook-skill.git --path jupyter-notebook
 ```
 
 ## Skill structure
