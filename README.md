@@ -66,7 +66,7 @@ For any other tool following the [Agent Skills specification](https://agentskill
 ### Install from Git (Gemini CLI)
 
 ```bash
-gemini skills install https://github.com/antquinonez/jupyter-notebook-skill.git
+gemini skills install https://github.com/antquinonez/jupyter-notebook-skill.git --path jupyter-notebook
 ```
 
 ### Install from Git (Antigravity CLI / `agy`)
