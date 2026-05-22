@@ -25,6 +25,7 @@ output, broken imports, and figures that disappear in PDF export.
 - [Visualization Libraries](#visualization-libraries)
 - [Commenting Standards](#commenting-standards)
 - [Structuring Notebooks](#structuring-notebooks)
+- [Data Sanity Checks Before Analysis](#data-sanity-checks-before-analysis)
 - [Import Robustness](#import-robustness)
 - [Exporting to HTML and PDF](#exporting-to-html-and-pdf)
 - [PDF Formatting](#pdf-formatting)
@@ -350,6 +351,47 @@ isolated validation.
 - **Print output is cell output**: In the validation script, `print()` goes to
   stdout which the script captures. Use `print()` for values you want to appear
   as output. Use markdown cells for narrative.
+
+## Data Sanity Checks Before Analysis
+
+Before any analytical section, print basic data diagnostics so the agent can
+verify the data loaded correctly and catch silent problems early. This is not
+about choosing analytical methods — it is about preventing the code from
+running successfully on corrupted or misinterpreted data.
+
+### Required diagnostics after loading data
+
+After reading a dataset into a DataFrame, always print:
+
+```python
+print(f"Shape: {df.shape[0]} rows x {df.shape[1]} columns")
+print(f"\nDtypes:\n{df.dtypes.to_string()}")
+print(f"\nNull counts:\n{df.isnull().sum().to_string()}")
+print(f"\nFirst 5 rows:\n{df.head().to_string(index=False)}")
+```
+
+### What this catches
+
+| Problem | Symptom | Caught by |
+|---------|---------|-----------|
+| Numeric columns loaded as strings | `"1,234"` instead of `1234` | `dtypes` check |
+| Mixed types in a column | Silent coercion to `object` | `dtypes` check |
+| Unexpected null counts | Analysis silently drops rows | `isnull().sum()` |
+| Wrong encoding or delimiter | Garbage column names, single-column DataFrame | `head()` + `shape` |
+| Empty DataFrame from bad query | Downstream code runs on nothing | `shape` check |
+
+### When to add more checks
+
+- **Categorical columns**: Print `df['col'].value_counts()` to verify expected
+  categories and catch typos or encoding artifacts.
+- **Numeric ranges**: Print `df.describe().to_string()` to catch impossible
+  values (negative ages, percentages above 100, etc.).
+- **ID uniqueness**: Print `df['id'].nunique()` vs `len(df)` to catch
+  duplicate rows before joining.
+
+These checks are notebook mechanics — they prevent the agent from building
+analysis on a broken foundation. Choosing what to do about the findings
+(clean, impute, exclude) is the user's decision.
 
 ## Import Robustness
 

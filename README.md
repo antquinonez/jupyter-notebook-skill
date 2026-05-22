@@ -24,6 +24,7 @@ This skill teaches the agent a disciplined workflow that prevents defects at the
 - **Import robustness** — project root discovery and sibling imports that work across all execution environments.
 - **PDF-ready output** — context-aware `display()`, embedded figures, CSS formatting for clean exports.
 - **Validated execution** — `exec()`-based runner with multi-CWD testing to catch environment-specific failures.
+- **Data sanity checks** — print dtypes, nulls, shape, and head after loading data to catch silent corruption before analysis starts.
 
 ## What this skill does not cover
 
