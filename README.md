@@ -1,18 +1,40 @@
 # jupyter-notebook skill
 
-Agent Skill for creating reliable, well-structured Jupyter notebooks with AI coding agents. Prevents the most common defects: stale markdown, unverifiable output, broken imports, and missing figures.
+Agent Skill for creating reliable, well-structured Jupyter notebooks with AI coding agents. Works with any [Agent Skills](https://agentskills.io)-compatible tool.
 
-Based on the [Agent Skills](https://agentskills.io) open standard. Works with any compatible agent.
+## The problem
 
-## What it covers
+AI agents are bad at writing Jupyter notebooks. Not because they can't write code, but because notebooks have properties that defeat the typical agent workflow:
 
-- **nbformat workflow** — generate and edit `.ipynb` files programmatically, never by hand-editing JSON
-- **Write-Run-Describe rule** — run code first, write markdown second, verify agreement
-- **AI-readable output** — every code cell emits `print()` or `display()` output the agent can verify
-- **Visualization best practices** — print data tables before plotting, use plotly/seaborn over raw matplotlib
-- **Import robustness** — project root discovery, sibling imports, multi-CWD validation
-- **PDF/HTML export** — embedded figures, CSS formatting, context-aware `display()`
-- **Full validation** — `exec()`-based notebook runner with multi-CWD testing
+- **The agent can't see its own output.** Charts, HTML tables, and interactive widgets are opaque. The agent writes markdown describing results it never verified.
+- **Notebooks share mutable state across cells.** Editing one cell can silently break downstream cells or invalidate markdown in other sections.
+- **Imports break unpredictably.** The working directory differs between validation, Jupyter, and the agent's own execution environment.
+- **Figures vanish in exports.** Matplotlib's Agg backend and missing static exports produce empty PDFs.
+
+Existing notebook skills focus on mechanical operations — scaffolding, converting, reading JSON. None of them address these reliability problems.
+
+## What this skill does differently
+
+This skill teaches the agent a disciplined workflow that prevents defects at the source:
+
+- **Write-Run-Describe rule** — the agent runs code first, reads the actual output, then writes markdown to match. No more "8 clusters" when the code outputs 12.
+- **AI-readable output** — every code cell emits `print()` output the agent can verify. No bare `df` expressions or invisible rich displays.
+- **Data tables before charts** — the agent prints the underlying data before plotting, so it can verify what the visualization shows.
+- **Full-notebook review after edits** — re-run and re-read the entire notebook after any code change to catch cascading failures.
+- **Import robustness** — project root discovery and sibling imports that work across all execution environments.
+- **PDF-ready output** — context-aware `display()`, embedded figures, CSS formatting for clean exports.
+- **Validated execution** — `exec()`-based runner with multi-CWD testing to catch environment-specific failures.
+
+## What this skill does not cover
+
+This skill is focused on **notebook reliability**. For other notebook tasks, consider pairing it with:
+
+| Need | Recommendation |
+|------|---------------|
+| Scaffold new notebooks from templates | [openai/skills](https://github.com/openai/skills) `jupyter-notebook` |
+| Interact with a live Jupyter kernel | [hamelsmu/hamelnb](https://github.com/hamelsmu/hamelnb) `live-kernel` |
+| Clean up and refactor messy notebooks | [Dexploarer/claudius-skills](https://github.com/Dexploarer/claudius-skills) `jupyter-assistant` |
+| Convert notebooks to marimo | [marimo-team/skills](https://github.com/marimo-team/skills) `jupyter-to-marimo` |
 
 ## Install
 
@@ -44,7 +66,7 @@ For any other tool following the [Agent Skills specification](https://agentskill
 ### Install from Git (Antigravity CLI)
 
 ```bash
-antigravity skills install https://github.com/YOUR-USER/ff-jupyter-skill.git --path jupyter-notebook
+antigravity skills install https://github.com/antquinonez/jupyter-notebook-skill.git --path jupyter-notebook
 ```
 
 ## Skill structure
