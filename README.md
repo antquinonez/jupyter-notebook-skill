@@ -54,7 +54,7 @@ If you prefer to install manually, copy the `jupyter-notebook/` folder into your
 |------|--------------|--------|
 | **opencode** | `.opencode/skills/` | `~/.config/opencode/skills/` |
 | **Claude Code** | `.claude/skills/` | `~/.claude/skills/` |
-| **Google Antigravity CLI** | `.gemini/skills/` or `.agents/skills/` | `~/.gemini/skills/` or `~/.agents/skills/` |
+| **Google Antigravity CLI (`agy`)** | `.gemini/skills/` or `.agents/skills/` | `~/.gemini/skills/` or `~/.agents/skills/` |
 | **Mistral Vibe** | `.vibe/skills/` | `~/.vibe/skills/` |
 
 For any other tool following the [Agent Skills specification](https://agentskills.io/specification), the pattern is the same:
@@ -63,11 +63,13 @@ For any other tool following the [Agent Skills specification](https://agentskill
 <skills-dir>/jupyter-notebook/SKILL.md
 ```
 
-### Install from Git (Gemini CLI / Antigravity CLI)
+### Install from Git (Gemini CLI)
 
 ```bash
 gemini skills install https://github.com/antquinonez/jupyter-notebook-skill.git --path jupyter-notebook
 ```
+
+Antigravity CLI (`agy`) discovers skills from the same directories (`.agents/skills/`, `~/.agents/skills/`) but does not yet have a `skills install` command. Use the manual copy method above.
 
 ## Skill structure
 
