@@ -1,3 +1,14 @@
+---
+name: jupyter-notebook
+description: >
+  Best practices for creating, editing, and validating Jupyter notebooks with
+  AI agents. Covers nbformat usage, write-run-describe workflow, AI-readable
+  output, visualization libraries, PDF export, and notebook validation. Use
+  when creating or modifying .ipynb files, generating notebook-based reports,
+  or debugging notebook execution failures.
+license: MIT
+---
+
 # AI Agent Guide: Creating Reliable Jupyter Notebooks
 
 Best practices for AI coding agents that generate or edit Jupyter notebooks.
