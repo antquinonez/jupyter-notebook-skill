@@ -66,10 +66,12 @@ For any other tool following the [Agent Skills specification](https://agentskill
 ### Install from Git (Gemini CLI)
 
 ```bash
-gemini skills install https://github.com/antquinonez/jupyter-notebook-skill.git --path jupyter-notebook
+gemini skills install https://github.com/antquinonez/jupyter-notebook-skill.git
 ```
 
-Antigravity CLI (`agy`) discovers skills from the same directories (`.agents/skills/`, `~/.agents/skills/`) but does not yet have a `skills install` command. Use the manual copy method above.
+### Install from Git (Antigravity CLI / `agy`)
+
+`agy` does not yet have a `skills install` command. Use the manual copy method above, placing the skill in `.agents/skills/jupyter-notebook/` (project-level) or `~/.agents/skills/jupyter-notebook/` (global).
 
 ## Skill structure
 
