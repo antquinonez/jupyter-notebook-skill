@@ -28,7 +28,6 @@ output, broken imports, and figures that disappear in PDF export.
 - [Import Robustness](#import-robustness)
 - [Exporting to HTML and PDF](#exporting-to-html-and-pdf)
 - [PDF Formatting](#pdf-formatting)
-- [Analytical Honesty](#analytical-honesty)
 - [Validation](#validation)
 
 ## Tool: nbformat, not manual JSON
@@ -617,39 +616,6 @@ Tables with 6+ columns overflow PDF page width. Solutions:
 - Split into two tables (summary columns + detail columns)
 - Drop columns that are redundant with the visualization
 - Use the chart for per-source detail, table for aggregate metrics
-
-## Analytical Honesty
-
-### Negative results deserve less space, not more
-
-When a metric or technique produces no useful signal (zero correlation, no
-predictive power), state it once clearly and move on. Do not make it the
-headline finding across multiple sections.
-
-**Pattern**:
-- Section where the metric is computed: show the result, note it has no signal
-- Later sections: mention it as a contrast ("unlike metric X, metric Y
-  shows...") but don't dedicate new subsections to it
-- Executive summary: state the negative finding once, then focus on positive
-  recommendations
-
-**Anti-pattern**: Computing a metric, finding it useless, then making "this
-metric is useless" the primary finding of 3 sections and the executive summary.
-
-### Executive summaries should argue, not summarize
-
-An executive summary for a technical analysis should:
-
-1. State what was done (1 paragraph)
-2. State what was found (evidence-backed claims with specific numbers)
-3. Explain why each finding matters (the "so what?")
-4. Recommend specific actions with concrete implementation details (not
-   "consider integrating" but "track X quarterly, compute Y, flag when Z
-   exceeds threshold")
-5. Acknowledge limitations honestly
-
-Do not merely repeat the section findings in bullet form. Make the case for
-why the reader should act on the recommendations.
 
 ## Validation
 
