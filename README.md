@@ -12,69 +12,39 @@ Based on the [Agent Skills](https://agentskills.io) open standard. Works with an
 - **Visualization best practices** — print data tables before plotting, use plotly/seaborn over raw matplotlib
 - **Import robustness** — project root discovery, sibling imports, multi-CWD validation
 - **PDF/HTML export** — embedded figures, CSS formatting, context-aware `display()`
-- **Analytical honesty** — negative results get less space, executive summaries argue rather than summarize
 - **Full validation** — `exec()`-based notebook runner with multi-CWD testing
 
 ## Install
 
-Clone this repo, then install the skill for your agent:
+### The easy way: ask your AI
 
-### opencode
+Most AI coding agents can install skills for you. Clone or download this repo, then open your agent and say:
 
-```bash
-# Option A: Project-level
-cp -r jupyter-notebook .opencode/skills/jupyter-notebook
+> Add the skill in the `jupyter-notebook/` folder of this repo.
 
-# Option B: Global
-cp -r jupyter-notebook ~/.config/opencode/skills/jupyter-notebook
+Your agent knows where its own skills directory lives and will copy it to the right place. This works for opencode, Claude Code, Google Antigravity CLI, Mistral Vibe, and any other [Agent Skills](https://agentskills.io)-compatible tool.
 
-# Option C: Reference via config (opencode.json)
-# Add to "skills.paths" the parent directory containing jupyter-notebook/
-```
+### The manual way: per-tool paths
 
-### Claude Code
+If you prefer to install manually, copy the `jupyter-notebook/` folder into your tool's skills directory:
 
-```bash
-# Option A: Project-level
-cp -r jupyter-notebook .claude/skills/jupyter-notebook
+| Tool | Project-level | Global |
+|------|--------------|--------|
+| **opencode** | `.opencode/skills/` | `~/.config/opencode/skills/` |
+| **Claude Code** | `.claude/skills/` | `~/.claude/skills/` |
+| **Google Antigravity CLI** | `.gemini/skills/` or `.agents/skills/` | `~/.gemini/skills/` or `~/.agents/skills/` |
+| **Mistral Vibe** | `.vibe/skills/` | `~/.vibe/skills/` |
 
-# Option B: Global
-cp -r jupyter-notebook ~/.claude/skills/jupyter-notebook
-```
-
-### Google Antigravity CLI (formerly Gemini CLI)
-
-```bash
-# Option A: Project-level
-cp -r jupyter-notebook .gemini/skills/jupyter-notebook
-# or the interoperable alias:
-cp -r jupyter-notebook .agents/skills/jupyter-notebook
-
-# Option B: Global
-cp -r jupyter-notebook ~/.gemini/skills/jupyter-notebook
-# or:
-cp -r jupyter-notebook ~/.agents/skills/jupyter-notebook
-
-# Option C: Install from Git
-antigravity skills install https://github.com/YOUR-USER/ff-jupyter-skill.git --path jupyter-notebook
-```
-
-### Mistral Vibe
-
-```bash
-# Option A: Project-level
-cp -r jupyter-notebook .vibe/skills/jupyter-notebook
-
-# Option B: Global
-cp -r jupyter-notebook ~/.vibe/skills/jupyter-notebook
-```
-
-### Other compatible agents
-
-Any tool that follows the [Agent Skills specification](https://agentskills.io/specification) will discover skills in their respective skills directory. The format is always the same:
+For any other tool following the [Agent Skills specification](https://agentskills.io/specification), the pattern is the same:
 
 ```
 <skills-dir>/jupyter-notebook/SKILL.md
+```
+
+### Install from Git (Antigravity CLI)
+
+```bash
+antigravity skills install https://github.com/YOUR-USER/ff-jupyter-skill.git --path jupyter-notebook
 ```
 
 ## Skill structure
