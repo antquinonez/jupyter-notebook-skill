@@ -23,7 +23,8 @@ This skill teaches the agent a disciplined workflow that prevents defects at the
 - **Full-notebook review after edits** — re-run and re-read the entire notebook after any code change to catch cascading failures.
 - **Import robustness** — project root discovery and sibling imports that work across all execution environments.
 - **PDF-ready output** — context-aware `display()`, embedded figures, CSS formatting for clean exports.
-- **Validated execution** — `exec()`-based runner with multi-CWD testing to catch environment-specific failures.
+- **Validated execution** — dual validation: fast `exec()` for iteration + `nbconvert --execute` for real kernel testing. Companion scripts included.
+- **Generator script pattern** — define notebook structure in `.py`, execute separately for reproducible, lintable, diffable notebooks.
 - **Data sanity checks** — print dtypes, nulls, shape, and head after loading data to catch silent corruption before analysis starts.
 
 ## What this skill does not cover
@@ -89,7 +90,11 @@ ff-jupyter-skill/
 ├── README.md
 └── skills/
     └── jupyter-notebook/
-        └── SKILL.md
+        ├── SKILL.md
+        └── scripts/
+            ├── nb_validate.py    # exec() validation with --cwd, --verbose flags
+            ├── nb_execute.py     # nbconvert --execute with config bypass
+            └── nb_template.py    # minimal generator script template
 ```
 
 ## License
