@@ -894,6 +894,22 @@ semantics.
 
 The skill includes reusable validation and execution scripts in `scripts/`:
 
+### Script dependencies
+
+Before using the companion scripts, install the required packages:
+
+```bash
+pip install nbformat papermill ipykernel
+```
+
+| Script | Requires |
+|--------|----------|
+| `nb_validate.py` | `nbformat` |
+| `nb_execute.py` | `nbformat`, `papermill`, `ipykernel` |
+| `nb_template.py` | `nbformat` |
+
+### Script reference
+
 | Script | Purpose |
 |--------|---------|
 | `scripts/nb_validate.py` | `exec()` validation with optional `--cwd`, `--verbose`, `--traceback` flags |
