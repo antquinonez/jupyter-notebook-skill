@@ -224,15 +224,12 @@ print("Created my_notebook.ipynb")
 python scripts/_nb_my_notebook.py
 
 # Step 2: Execute to populate outputs (makes API calls)
-JUPYTER_CONFIG_DIR=/tmp/empty_jupyter_config \
-    jupyter nbconvert --to notebook --execute \
-    --ExecutePreprocessor.timeout=120 \
-    examples/my_notebook/my_notebook.ipynb \
-    --output my_notebook.ipynb
+python scripts/nb_execute.py examples/my_notebook/my_notebook.ipynb --timeout 120
 ```
 
-The `JUPYTER_CONFIG_DIR` bypass prevents broken global Jupyter configs from
-interfering (see [Broken global Jupyter config](#broken-global-jupyter-config)).
+The `nb_execute.py` script uses **papermill** under the hood, which auto-detects
+kernels and ignores broken `~/.jupyter/` config (no `JUPYTER_CONFIG_DIR` bypass
+needed).
 
 ### Naming convention
 
@@ -698,10 +695,14 @@ exists partly because `ruff` flags `E731` for lambda assignments.
 
 ## Exporting to HTML and PDF
 
+Notebook **execution** uses papermill (see [Validation](#validation)). Notebook
+**export** (HTML, PDF) still uses `nbconvert` since papermill does not handle
+format conversion.
+
 ### Prerequisites
 
 ```bash
-# HTML export (works out of the box)
+# Export only (papermill handles execution)
 pip install nbconvert
 
 # PDF export via webpdf (requires Playwright + Chromium)
@@ -862,7 +863,9 @@ without duplication.
 ### Broken global Jupyter config
 
 `~/.jupyter/jupyter_nbconvert_config.json` may reference missing packages and
-break the export. Bypass with an empty config directory:
+break `nbconvert`-based tools. **Papermill is not affected** because it does
+not read nbconvert exporter config. If you must use `nbconvert` directly (e.g.
+for HTML/PDF export), bypass with an empty config directory:
 
 ```bash
 mkdir -p /tmp/empty_jupyter_config
@@ -870,7 +873,7 @@ JUPYTER_CONFIG_DIR=/tmp/empty_jupyter_config jupyter nbconvert --to webpdf \
     --no-input --execute --ExecutePreprocessor.timeout=180 notebook.ipynb
 ```
 
-Always use this bypass for `nbconvert` commands in scripts and CI.
+Always use this bypass for direct `nbconvert` commands in scripts and CI.
 
 ### Wide table handling
 
@@ -884,17 +887,33 @@ Tables with 6+ columns overflow PDF page width. Solutions:
 
 After creating or modifying notebooks, validate they execute correctly using
 **both** methods below. A notebook that passes `exec()` validation can still
-fail under `nbconvert --execute` because the two contexts have different
+fail under papermill execution because the two contexts have different
 semantics.
 
 ### Companion scripts
 
 The skill includes reusable validation and execution scripts in `scripts/`:
 
+### Script dependencies
+
+Before using the companion scripts, install the required packages:
+
+```bash
+pip install nbformat papermill ipykernel
+```
+
+| Script | Requires |
+|--------|----------|
+| `nb_validate.py` | `nbformat` |
+| `nb_execute.py` | `nbformat`, `papermill`, `ipykernel` |
+| `nb_template.py` | `nbformat` |
+
+### Script reference
+
 | Script | Purpose |
 |--------|---------|
 | `scripts/nb_validate.py` | `exec()` validation with optional `--cwd`, `--verbose`, `--traceback` flags |
-| `scripts/nb_execute.py` | `nbconvert --execute` with config bypass, embeds outputs in file |
+| `scripts/nb_execute.py` | papermill execution with output embedding |
 | `scripts/nb_template.py` | Minimal generator script to copy and adapt |
 
 Usage:
@@ -911,6 +930,9 @@ python scripts/nb_validate.py path/to/notebook.ipynb --cwd path/to/
 
 # Full execution with output embedding (slow, real kernel)
 python scripts/nb_execute.py path/to/notebook.ipynb --timeout 120
+
+# Specify kernel explicitly (useful when notebook lacks kernel metadata)
+python scripts/nb_execute.py path/to/notebook.ipynb --kernel python3
 ```
 
 ### Method 1: `exec()` validation (fast, no kernel)
@@ -925,30 +947,44 @@ python scripts/nb_validate.py path/to/notebook.ipynb
 Also validate with CWD set to the notebook's directory (see Import
 Robustness Rule 3).
 
-### Method 2: `nbconvert --execute` (slow, real kernel)
+### Method 2: papermill execution (slow, real kernel)
 
-Runs cells inside a real IPython kernel via nbconvert. This is the **only**
+Runs cells inside a real IPython kernel via papermill. This is the **only**
 way to verify notebooks that use async code (Jupyter kernels have an active
 event loop; `exec()` does not).
 
 ```bash
+# Using the companion script
 python scripts/nb_execute.py path/to/notebook.ipynb --timeout 120
+
+# Or directly via papermill CLI
+papermill path/to/notebook.ipynb path/to/notebook.ipynb -k python3
 ```
 
-This also writes the executed outputs back into the `.ipynb` file, making it
+This writes the executed outputs back into the `.ipynb` file, making it
 self-contained with embedded results.
+
+Papermill advantages over `nbconvert --execute`:
+
+- **Kernel fallback**: Auto-detects kernels; `-k` flag overrides without
+  hard-failing on missing kernel metadata in the notebook
+- **Better error output**: Reports which cell failed with full traceback
+  (`PapermillExecutionError` with `exec_count`, `ename`, `evalue`)
+- **Config-safe**: Not affected by broken `~/.jupyter/` config
+- **Parameterization**: Supports injecting variables via CLI (`-p key value`)
 
 ### Key differences between the two methods
 
-| Aspect | `exec()` | `nbconvert --execute` |
-|--------|----------|-----------------------|
+| Aspect | `exec()` | papermill |
+|--------|----------|-----------|
 | Event loop | None | Active IPython kernel |
 | `asyncio.run()` | Works | Raises `RuntimeError` |
 | `run_sync()` pattern | Works | Works (uses thread fallback) |
 | IPython display | No frontend | Full frontend |
 | Speed | Fast | Slow (kernel startup) |
 | Output embedding | No | Yes (writes to file) |
-| Config sensitivity | None | Affected by `~/.jupyter/` config |
+| Config sensitivity | None | Not affected by `~/.jupyter/` |
+| Kernel metadata | N/A | Auto-detects or `-k` override |
 
 **Critical**: Notebook cells share state. Syntax errors in one cell may not
 appear until a dependent cell executes. Always run the full notebook after

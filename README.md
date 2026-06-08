@@ -23,7 +23,7 @@ This skill teaches the agent a disciplined workflow that prevents defects at the
 - **Full-notebook review after edits** — re-run and re-read the entire notebook after any code change to catch cascading failures.
 - **Import robustness** — project root discovery and sibling imports that work across all execution environments.
 - **PDF-ready output** — context-aware `display()`, embedded figures, CSS formatting for clean exports.
-- **Validated execution** — dual validation: fast `exec()` for iteration + `nbconvert --execute` for real kernel testing. Companion scripts included.
+- **Validated execution** — dual validation: fast `exec()` for iteration + papermill for real kernel testing. Companion scripts included.
 - **Generator script pattern** — define notebook structure in `.py`, execute separately for reproducible, lintable, diffable notebooks.
 - **Data sanity checks** — print dtypes, nulls, shape, and head after loading data to catch silent corruption before analysis starts.
 
@@ -81,19 +81,54 @@ git clone https://github.com/antquinonez/jupyter-notebook-skill.git ~/.gemini/an
 
 Or you can use `agy`'s built-in plugin subcommands if preferred.
 
+## Companion script dependencies
+
+The companion scripts in `scripts/` require Python packages beyond the standard library. Install them with:
+
+```bash
+pip install nbformat papermill ipykernel
+```
+
+| Script | Requires |
+|--------|----------|
+| `nb_validate.py` | `nbformat` |
+| `nb_execute.py` | `nbformat`, `papermill`, `ipykernel` |
+| `nb_template.py` | `nbformat` |
+
+For development (running tests, linting):
+
+```bash
+pip install -e ".[dev]"
+```
+
+## Testing
+
+```bash
+pip install -e ".[test,execute]"
+pytest
+```
+
+The test suite has 28 tests across three files. Tests that require papermill are automatically skipped if it is not installed.
+
 ## Skill structure
 
 ```
 ff-jupyter-skill/
 ├── plugin.json
+├── pyproject.toml       # dependency groups: test, execute, dev
 ├── LICENSE
 ├── README.md
+├── tests/
+│   ├── conftest.py      # shared fixtures and notebook generators
+│   ├── test_nb_validate.py
+│   ├── test_nb_execute.py
+│   └── test_generator.py
 └── skills/
     └── jupyter-notebook/
         ├── SKILL.md
         └── scripts/
             ├── nb_validate.py    # exec() validation with --cwd, --verbose flags
-            ├── nb_execute.py     # nbconvert --execute with config bypass
+            ├── nb_execute.py     # papermill execution with output embedding
             └── nb_template.py    # minimal generator script template
 ```
 
