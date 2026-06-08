@@ -17,7 +17,24 @@ import sys
 import papermill as pm
 
 
-def execute_notebook(nb_path: str, timeout: int = 120, kernel: str = "python3") -> None:
+class ExecutionError(Exception):
+    """Raised when a notebook cell fails during papermill execution."""
+
+    def __init__(self, exec_count: int, ename: str, evalue: str) -> None:
+        self.exec_count = exec_count
+        self.ename = ename
+        self.evalue = evalue
+        super().__init__(f"Cell [{exec_count}] FAILED: {ename} {evalue}")
+
+
+def execute_notebook(
+    nb_path: str, timeout: int = 120, kernel: str = "python3",
+) -> str:
+    """Execute a notebook via papermill, returning the output path.
+
+    Raises ExecutionError on cell failure so callers can handle it
+    without sys.exit.
+    """
     resolved = os.path.abspath(nb_path)
 
     try:
@@ -28,11 +45,9 @@ def execute_notebook(nb_path: str, timeout: int = 120, kernel: str = "python3") 
             execution_timeout=timeout,
         )
     except pm.PapermillExecutionError as e:
-        print(f"Cell [{e.exec_count}] FAILED:", file=sys.stderr)
-        print(e.ename, e.evalue, file=sys.stderr)
-        sys.exit(1)
+        raise ExecutionError(e.exec_count, e.ename, e.evalue) from e
 
-    print(f"Executed: {nb_path}")
+    return resolved
 
 
 def main() -> None:
@@ -47,7 +62,15 @@ def main() -> None:
         "--kernel", default="python3", help="Kernel name (default: python3)"
     )
     args = parser.parse_args()
-    execute_notebook(args.notebook, args.timeout, args.kernel)
+
+    try:
+        output = execute_notebook(args.notebook, args.timeout, args.kernel)
+    except ExecutionError as e:
+        print(f"Cell [{e.exec_count}] FAILED:", file=sys.stderr)
+        print(e.ename, e.evalue, file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Executed: {output}")
 
 
 if __name__ == "__main__":

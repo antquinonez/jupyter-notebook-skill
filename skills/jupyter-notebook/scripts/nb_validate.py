@@ -22,43 +22,53 @@ from pathlib import Path
 import nbformat
 
 
+class ValidationError(Exception):
+    """Raised when a notebook cell fails during exec() validation."""
+
+    def __init__(self, cell_index: int, source: str, error: Exception) -> None:
+        self.cell_index = cell_index
+        self.source = source
+        self.error = error
+        super().__init__(f"Cell {cell_index} FAILED: {error}")
+
+
 def validate_notebook(
     nb_path: str,
     cwd: str | None = None,
     verbose: bool = False,
     show_traceback: bool = False,
-) -> None:
+) -> tuple[int, list[ValidationError]]:
+    """Validate a notebook by executing all code cells via exec().
+
+    Returns (executed_count, errors) so callers can decide how to handle
+    failures without sys.exit.
+    """
     resolved = Path(nb_path).resolve()
     if not resolved.is_file():
-        print(f"Error: notebook not found: {resolved}", file=sys.stderr)
-        sys.exit(1)
+        raise FileNotFoundError(f"Notebook not found: {resolved}")
 
     if cwd:
         os.chdir(cwd)
         if verbose:
             print(f"CWD set to: {cwd}")
 
-    # Validate notebook structure before executing
     try:
         nb = nbformat.read(resolved, as_version=4)
     except Exception as e:
-        print(f"Error reading notebook: {e}", file=sys.stderr)
-        sys.exit(1)
+        raise ValueError(f"Error reading notebook: {e}") from e
 
-    # Warn on empty notebooks
     code_cells = [c for c in nb.cells if c.cell_type == "code"]
     if not code_cells:
-        print("Warning: no code cells found in notebook", file=sys.stderr)
-        return
+        return 0, []
 
     exec_globals: dict = {"__name__": "__main__"}
     executed = 0
+    errors: list[ValidationError] = []
 
     for i, cell in enumerate(nb.cells):
         if cell.cell_type != "code":
             continue
 
-        # Skip empty code cells
         source = cell.source.strip()
         if not source:
             if verbose:
@@ -73,18 +83,20 @@ def validate_notebook(
         try:
             exec(cell.source, exec_globals)
         except Exception as e:
-            print(f"\nCell {i} FAILED: {e}")
-            # Show the failing cell source for context
-            print(f"\n--- Cell {i} source ---")
-            for line_no, line in enumerate(cell.source.split("\n"), 1):
-                print(f"  {line_no:3d} | {line}")
-            print("---")
+            errors.append(ValidationError(i, cell.source, e))
             if show_traceback:
                 traceback.print_exc()
-            sys.exit(1)
+            break
 
-    cwd_info = f" (CWD = {cwd})" if cwd else ""
-    print(f"All {executed} code cells executed successfully{cwd_info}")
+    return executed, errors
+
+
+def _print_error(err: ValidationError) -> None:
+    print(f"\nCell {err.cell_index} FAILED: {err.error}")
+    print(f"\n--- Cell {err.cell_index} source ---")
+    for line_no, line in enumerate(err.source.split("\n"), 1):
+        print(f"  {line_no:3d} | {line}")
+    print("---")
 
 
 def main() -> None:
@@ -104,7 +116,29 @@ def main() -> None:
         help="Print full tracebacks on failure",
     )
     args = parser.parse_args()
-    validate_notebook(args.notebook, args.cwd, args.verbose, args.traceback)
+
+    try:
+        executed, errors = validate_notebook(
+            args.notebook, args.cwd, args.verbose, args.traceback,
+        )
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if errors:
+        for err in errors:
+            _print_error(err)
+        sys.exit(1)
+
+    if executed == 0:
+        print("Warning: no code cells found in notebook", file=sys.stderr)
+        return
+
+    cwd_info = f" (CWD = {args.cwd})" if args.cwd else ""
+    print(f"All {executed} code cells executed successfully{cwd_info}")
 
 
 if __name__ == "__main__":
